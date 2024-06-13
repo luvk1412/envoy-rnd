@@ -47,7 +47,7 @@ curl -X POST http://localhost:8888/service1/post \
 ## envoy-cleanup
 - Delete config
 ```bash
-kubectl delete -f https://github.com/envoyproxy/gateway/releases/download/latest/quickstart.yaml --ignore-not-found=true
+kubectl delete -f envoy/config.yaml --ignore-not-found=true
 ```
 - Delete envoy
 ```bash
