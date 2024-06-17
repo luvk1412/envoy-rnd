@@ -2,21 +2,26 @@
 
 Testing envoy on local
 
-
-## envoy-setup
-
-- Install and start [minikube](https://minikube.sigs.k8s.io/docs/start/?arch=%2Fmacos%2Farm64%2Fstable%2Fhomebrew)
+### Tools Installation
+- Install [minikube](https://minikube.sigs.k8s.io/docs/start/?arch=%2Fmacos%2Farm64%2Fstable%2Fhomebrew)
 ```bash
 brew install minikube
-minikube start
 ```
-- Install helm <br/>
+- Install helm
 ```bash
 brew install helm
 ```
+
+## envoy-setup
+
+- Start minikube
+```bash
+minikube start
+```
+
 - Setup envoy gateway <br/>
 ```bash
-helm install eg oci://docker.io/envoyproxy/gateway-helm --version v0.0.0-latest -n envoy-gateway-system --create-namespace
+helm install eg oci://docker.io/envoyproxy/gateway-helm --version v1.0.2 -n envoy-gateway-system --create-namespace
 ```
 - Wait for envoy gateway to set up<br/>
 ```bash
@@ -32,7 +37,7 @@ export ENVOY_SERVICE=$(kubectl get svc -n envoy-gateway-system --selector=gatewa
 ```
 - Port forward envoy to localhost<br/>
 ```bash
-kubectl -n envoy-gateway-system port-forward service/${ENVOY_SERVICE} 8888:80`
+kubectl -n envoy-gateway-system port-forward service/${ENVOY_SERVICE} 8888:80
 ```
 - Example curl you can hit<br/>
 ```bash
@@ -52,4 +57,8 @@ kubectl delete -f envoy/config.yaml --ignore-not-found=true
 - Delete envoy
 ```bash
 helm uninstall eg -n envoy-gateway-system
+```
+- Delete minikube
+```bash
+minikube delete
 ```

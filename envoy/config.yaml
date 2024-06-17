@@ -107,12 +107,11 @@ spec:
           ports:
             - containerPort: 3001
 ---
-# HTTPRoute for backend1, specifying hostnames and path prefixes that
-# direct traffic to backend1.
+# HTTPRoute for backends, specifying hostnames and path prefixes that
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: backend1-route
+  name: backend-routes
 spec:
   parentRefs:
     - name: eg
@@ -129,20 +128,6 @@ spec:
         - path:
             type: PathPrefix
             value: /service1
----
-# HTTPRoute for backend2, designed to route traffic from a different hostname
-# and path prefix to backend2.
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  name: backend2-route
-spec:
-  parentRefs:
-    - name: eg
-# If we enable hostname, we should send host header in request appropriately
-#  hostnames:
-#    - "www.example2.com"
-  rules:
     - backendRefs:
         - group: ""
           kind: Service
