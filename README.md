@@ -62,3 +62,14 @@ helm uninstall eg -n envoy-gateway-system
 ```bash
 minikube delete
 ```
+
+## Docker setup
+Server used for testing can be built using below commands. It's a simple python echo server
+- Use docker inside minikube daemon, will be only valid for that terminal session
+```bash
+eval $(minikube docker-env)
+```
+- Build server image
+```bash
+docker build --platform=linux/amd64 -t python-echo server/.
+```
