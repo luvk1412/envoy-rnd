@@ -71,5 +71,5 @@ eval $(minikube docker-env)
 ```
 - Build server image
 ```bash
-docker build --platform=linux/amd64 -t python-echo server/.
+docker build --platform=linux/amd64 -t python-echo echo_server/.
 ```
