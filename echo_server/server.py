@@ -54,7 +54,7 @@ class EchoHandler(BaseHTTPRequestHandler):
     def handle_request(self):
         # Timestamp when headers are fully received
         self.headers_received_time = time.time()
-        LOG.info(f"[{self.id}] Headers received...")
+        LOG.info(f"[{self.id}] Headers received: {dict(self.headers)}")
 
         # Read the body if any
         content_length = self.headers.get('Content-Length')
