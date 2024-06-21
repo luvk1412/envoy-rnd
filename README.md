@@ -69,7 +69,11 @@ Server used for testing can be built using below commands. It's a simple python 
 ```bash
 eval $(minikube docker-env)
 ```
-- Build server image
+- Build echo server image
 ```bash
 docker build --platform=linux/amd64 -t python-echo echo_server/.
+```
+- Build auth server image
+```bash
+docker build --platform=linux/amd64 -t python-auth auth_server/.
 ```
