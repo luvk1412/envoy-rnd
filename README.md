@@ -29,7 +29,7 @@ kubectl wait --timeout=5m -n envoy-gateway-system deployment/envoy-gateway --for
 ```
 - Setup example app and routes<br/>
 ```bash
-kubectl apply -f envoy/config.yaml -n default
+kubectl apply -f envoy/config.yaml
 ```
 - Get name of envoy service<br/>
 ```bash
@@ -44,6 +44,7 @@ kubectl -n envoy-gateway-system port-forward service/${ENVOY_SERVICE} 8888:80
 curl -X POST http://localhost:8888/service1/post \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer your_access_token_here" \
+  -H "X-Session-Token: token1" \
   -H "Custom-Header: custom_value" \
   -d '{"key1": "value1", "key2": "value2"}'
  ```

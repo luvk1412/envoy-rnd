@@ -1,0 +1,53 @@
+# ServiceAccount for backend services, used for Kubernetes access control.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: p-envoy
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: python-envoy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: python-envoy
+  template:
+    metadata:
+      labels:
+        app: python-envoy
+    spec:
+      serviceAccountName: p-envoy
+      containers:
+        - name: python-echo
+          image: python-echo:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5000
+        - name: envoy
+          image: envoyproxy/envoy:dev  # Use the appropriate Envoy image version
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - containerPort: 10000
+            - containerPort: 8001
+          volumeMounts:
+            - name: envoy-config
+              mountPath: /etc/envoy
+      volumes:
+        - name: envoy-config
+          configMap:
+            name: envoy-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: python-envoy-service
+spec:
+  selector:
+    app: python-envoy
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 10000
