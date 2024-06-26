@@ -78,3 +78,26 @@ docker build --platform=linux/amd64 -t python-echo echo_server/.
 ```bash
 docker build --platform=linux/amd64 -t python-auth auth_server/.
 ```
+
+## Envoy-Proxy Setup
+- Create config map for envoy proxy. Below command will update the configmap if already exists
+```bash
+  kubectl create configmap envoy-config --from-file=envoy.yaml=envoy_proxy/envoy.yaml --dry-run=client -o yaml | kubectl apply -f -
+```
+- Setup python app with sidecar envoy proxy
+```bash
+kubectl apply -f envoy_proxy/config.yaml
+```
+- Port forward
+```bash
+kubectl port-forward service/python-envoy-service 8080:80
+```
+- Hit below curl for testing
+```bash
+curl -v -X POST http://localhost:8080/service1/post \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your_access_token_here" \
+  -H "X-Session-Token: my_token" \
+  -H "Custom-Header: custom_value" \
+  -d '{"key1": "value1", "key2": "value2"}'
+```
