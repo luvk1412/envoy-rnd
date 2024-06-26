@@ -1,0 +1,293 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: envoy-gateway-config
+  namespace: envoy-gateway-system
+data:
+  envoy-gateway.yaml: |
+    apiVersion: gateway.envoyproxy.io/v1alpha1
+    kind: EnvoyGateway
+    provider:
+      type: Kubernetes
+    gateway:
+      controllerName: gateway.envoyproxy.io/gatewayclass-controller
+    extensionApis:
+      enableEnvoyPatchPolicy: true
+---
+# Defines a GatewayClass that is a template for creating Gateways
+# using a specific controller, in this case, the Envoy-based gateway controller.
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: eg
+spec:
+  controllerName: gateway.envoyproxy.io/gatewayclass-controller
+  # parametersRef can be used by gateway providers to get information on what to use and what not
+  parametersRef:
+    group: gateway.envoyproxy.io
+    kind: EnvoyProxy
+    name: custom-proxy-config
+    namespace: envoy-gateway-system
+---
+# Custom envoy proxy configuration
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyProxy
+metadata:
+  name: custom-proxy-config
+  namespace: envoy-gateway-system
+spec:
+  provider:
+    type: Kubernetes
+    kubernetes:
+      envoyDeployment:
+        replicas: 1
+---
+# Defines a Gateway that uses the defined GatewayClass. This Gateway
+# listens on HTTP protocol at port 80.
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: eg
+spec:
+  gatewayClassName: eg
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyPatchPolicy
+metadata:
+  name: buffer-req-patch-policy
+  namespace: envoy-gateway-system
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: Gateway
+    name: eg
+    namespace: envoy-gateway-system
+  type: JSONPatch
+  jsonPatches:
+    - type: "type.googleapis.com/envoy.config.listener.v3.Listener"
+      name: envoy-gateway-system/eg/http
+      operation:
+        op: add
+        path: "/default_filter_chain/filters/0/typed_config/http_filters/0"
+        value:
+          name: envoy.filters.http.buffer
+          typed_config:
+            '@type': type.googleapis.com/envoy.extensions.filters.http.buffer.v3.Buffer
+            maxRequestBytes: 52428800
+---
+# ServiceAccount for backend services, used for Kubernetes access control.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: backend
+#---
+## Defines the first backend service called 'backend1'.
+## It labels the service and selects pods based on the 'app: backend1' label.
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  name: backend1
+#  labels:
+#    app: backend1
+#    service: backend1
+#spec:
+#  ports:
+#    - name: http
+#      port: 8080
+#      targetPort: 8080
+#  selector:
+#    app: backend1
+#---
+## Deployment for backend1. It sets up a pod with one replica,
+## using the specified container image and exposing port 8080.
+#apiVersion: apps/v1
+#kind: Deployment
+#metadata:
+#  name: backend1
+#spec:
+#  replicas: 1
+#  selector:
+#    matchLabels:
+#      app: backend1
+#  template:
+#    metadata:
+#      labels:
+#        app: backend1
+#    spec:
+#      serviceAccountName: backend
+#      containers:
+#        - image: python-echo:latest
+#          imagePullPolicy: IfNotPresent
+#          name: backend1
+#          env:
+#            - name: POD_NAME
+#              valueFrom:
+#                fieldRef:
+#                  fieldPath: metadata.name
+#            - name: POD_NAMESPACE
+#              valueFrom:
+#                fieldRef:
+#                  fieldPath: metadata.namespace
+#            - name: POD_IP
+#              valueFrom:
+#                fieldRef:
+#                  fieldPath: status.podIP
+#          ports:
+#            - containerPort: 8080
+#---
+## Defines the second backend service called 'backend2'.
+## Similar to the first, but serves on a different port and targets pods with 'app: backend2'.
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  name: backend2
+#  labels:
+#    app: backend2
+#    service: backend2
+#spec:
+#  ports:
+#    - name: http
+#      port: 8080
+#      targetPort: 8080
+#  selector:
+#    app: backend2
+#---
+#apiVersion: apps/v1
+#kind: Deployment
+#metadata:
+#  name: backend2
+#spec:
+#  replicas: 1
+#  selector:
+#    matchLabels:
+#      app: backend2
+#  template:
+#    metadata:
+#      labels:
+#        app: backend2
+#    spec:
+#      serviceAccountName: backend
+#      containers:
+#        - image: python-echo:latest
+#          imagePullPolicy: IfNotPresent
+#          name: backend2
+#          env:
+#            - name: POD_NAME
+#              valueFrom:
+#                fieldRef:
+#                  fieldPath: metadata.name
+#            - name: POD_NAMESPACE
+#              valueFrom:
+#                fieldRef:
+#                  fieldPath: metadata.namespace
+#            - name: POD_IP
+#              valueFrom:
+#                fieldRef:
+#                  fieldPath: status.podIP
+#          ports:
+#            - containerPort: 8080
+#
+#---
+## Auth Service
+#apiVersion: v1
+#kind: Service
+#metadata:
+#  name: auth
+#  labels:
+#    app: auth
+#    service: auth
+#spec:
+#  ports:
+#    - name: http
+#      port: 8080
+#      targetPort: 8080
+#  selector:
+#    app: auth
+#---
+#apiVersion: apps/v1
+#kind: Deployment
+#metadata:
+#  name: auth
+#spec:
+#  replicas: 1
+#  selector:
+#    matchLabels:
+#      app: auth
+#  template:
+#    metadata:
+#      labels:
+#        app: auth
+#    spec:
+#      serviceAccountName: backend
+#      containers:
+#        - image: python-auth:latest
+#          imagePullPolicy: IfNotPresent
+#          name: auth
+#          env:
+#            - name: POD_NAME
+#              valueFrom:
+#                fieldRef:
+#                  fieldPath: metadata.name
+#            - name: POD_NAMESPACE
+#              valueFrom:
+#                fieldRef:
+#                  fieldPath: metadata.namespace
+#            - name: POD_IP
+#              valueFrom:
+#                fieldRef:
+#                  fieldPath: status.podIP
+#          ports:
+#            - containerPort: 8080
+
+---
+# HTTPRoute for backends, specifying hostnames and path prefixes that
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: backend-routes
+spec:
+  parentRefs:
+    - name: eg
+  # If we enable hostname, we should send host header in request appropriately
+  #  hostnames:
+  #    - "www.example1.com"
+  rules:
+    - backendRefs:
+        - group: ""
+          kind: Service
+          name: backend1
+          port: 8080
+      matches:
+        - path:
+            type: PathPrefix
+            value: /service1
+    - backendRefs:
+        - group: ""
+          kind: Service
+          name: backend2
+          port: 8080
+      matches:
+        - path:
+            type: PathPrefix
+            value: /service2
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: ext-auth-example
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: backend-routes
+  extAuth:
+    http:
+      backendRef:
+        name: auth
+        port: 8080
+      headersToBackend: [ "x-Session-resp" ]
+    headersToExtAuth: [ 'x-session-token' ]
