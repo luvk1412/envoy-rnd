@@ -1,5 +1,5 @@
 xds:
-  envoy-gateway-system/eg:
+  default/eg:
     configs:
     - '@type': type.googleapis.com/envoy.admin.v3.BootstrapConfigDump
       bootstrap:
@@ -132,61 +132,7 @@ xds:
                   statPrefix: eg-ready-http
             name: envoy-gateway-proxy-ready-0.0.0.0-19001
     - '@type': type.googleapis.com/envoy.admin.v3.EndpointsConfigDump
-      dynamicEndpointConfigs:
-      - endpointConfig:
-          '@type': type.googleapis.com/envoy.config.endpoint.v3.ClusterLoadAssignment
-          clusterName: httproute/envoy-gateway-system/backend-routes/rule/0
-          endpoints:
-          - loadBalancingWeight: 1
-            locality:
-              region: httproute/envoy-gateway-system/backend-routes/rule/0/backend/0
-      - endpointConfig:
-          '@type': type.googleapis.com/envoy.config.endpoint.v3.ClusterLoadAssignment
-          clusterName: httproute/envoy-gateway-system/backend-routes/rule/1
-          endpoints:
-          - loadBalancingWeight: 1
-            locality:
-              region: httproute/envoy-gateway-system/backend-routes/rule/1/backend/0
     - '@type': type.googleapis.com/envoy.admin.v3.ClustersConfigDump
-      dynamicActiveClusters:
-      - cluster:
-          '@type': type.googleapis.com/envoy.config.cluster.v3.Cluster
-          circuitBreakers:
-            thresholds:
-            - maxRetries: 1024
-          commonLbConfig:
-            localityWeightedLbConfig: {}
-          connectTimeout: 10s
-          dnsLookupFamily: V4_ONLY
-          edsClusterConfig:
-            edsConfig:
-              ads: {}
-              resourceApiVersion: V3
-            serviceName: httproute/envoy-gateway-system/backend-routes/rule/0
-          lbPolicy: LEAST_REQUEST
-          name: httproute/envoy-gateway-system/backend-routes/rule/0
-          outlierDetection: {}
-          perConnectionBufferLimitBytes: 32768
-          type: EDS
-      - cluster:
-          '@type': type.googleapis.com/envoy.config.cluster.v3.Cluster
-          circuitBreakers:
-            thresholds:
-            - maxRetries: 1024
-          commonLbConfig:
-            localityWeightedLbConfig: {}
-          connectTimeout: 10s
-          dnsLookupFamily: V4_ONLY
-          edsClusterConfig:
-            edsConfig:
-              ads: {}
-              resourceApiVersion: V3
-            serviceName: httproute/envoy-gateway-system/backend-routes/rule/1
-          lbPolicy: LEAST_REQUEST
-          name: httproute/envoy-gateway-system/backend-routes/rule/1
-          outlierDetection: {}
-          perConnectionBufferLimitBytes: 32768
-          type: EDS
     - '@type': type.googleapis.com/envoy.admin.v3.ListenersConfigDump
       dynamicListeners:
       - activeState:
@@ -245,33 +191,18 @@ xds:
                     configSource:
                       ads: {}
                       resourceApiVersion: V3
-                    routeConfigName: envoy-gateway-system/eg/http
+                    routeConfigName: default/eg/http
                   serverHeaderTransformation: PASS_THROUGH
                   statPrefix: http
                   useRemoteAddress: true
-              name: envoy-gateway-system/eg/http
+              name: default/eg/http
             drainType: MODIFY_ONLY
-            name: envoy-gateway-system/eg/http
+            name: default/eg/http
             perConnectionBufferLimitBytes: 32768
     - '@type': type.googleapis.com/envoy.admin.v3.RoutesConfigDump
       dynamicRouteConfigs:
       - routeConfig:
           '@type': type.googleapis.com/envoy.config.route.v3.RouteConfiguration
           ignorePortInHostMatching: true
-          name: envoy-gateway-system/eg/http
-          virtualHosts:
-          - domains:
-            - '*'
-            name: envoy-gateway-system/eg/http/*
-            routes:
-            - directResponse:
-                status: 500
-              match:
-                pathSeparatedPrefix: /service1
-              name: httproute/envoy-gateway-system/backend-routes/rule/0/match/0/*
-            - directResponse:
-                status: 500
-              match:
-                pathSeparatedPrefix: /service2
-              name: httproute/envoy-gateway-system/backend-routes/rule/1/match/0/*
+          name: default/eg/http
 
