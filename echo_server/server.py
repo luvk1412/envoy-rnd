@@ -58,6 +58,15 @@ class EchoHandler(BaseHTTPRequestHandler):
 
         # Read the body if any
         content_length = self.headers.get('Content-Length')
+        data_size = self.headers.get('x-resp-mb')
+        delay_seconds = self.headers.get('x-resp-delay')
+
+
+        if data_size:
+            data_size = float(data_size)
+        else:
+            data_size = 0
+
         post_data = None
         if content_length:
             content_length = int(content_length)
@@ -78,6 +87,14 @@ class EchoHandler(BaseHTTPRequestHandler):
             'headers': dict(self.headers),
             'body': post_data
         }
+
+        if 'status' not in self.path:
+            LOG.info(f'[{self.id}] Not a status req {data_size}')
+            response_data['large_str'] = "a" * int(data_size * 1024 * 1024)
+
+        if delay_seconds:
+            LOG.info(f'[{self.id}] Delay seconds found {delay_seconds}')
+            time.sleep(float(delay_seconds))
 
         # Send response
         self.send_response(200)
