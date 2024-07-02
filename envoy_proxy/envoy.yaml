@@ -23,6 +23,21 @@ static_resources:
                     typed_config:
                       '@type': type.googleapis.com/envoy.extensions.filters.http.buffer.v3.Buffer
                       maxRequestBytes: 52428800
+#                  - name: envoy.filters.http.filebuffer
+#                    typed_config:
+#                      '@type': type.googleapis.com/envoy.extensions.filters.http.file_system_buffer.v3.FileSystemBufferFilterConfig
+#                      manager_config:
+#                        thread_pool:
+#                          thread_count: 2
+#                      request:
+#                        behavior:
+#                          bypass: {}
+#                      response:
+#                        behavior:
+#                          fully_buffer: {}
+#                        memory_buffer_bytes_limit: 30971520
+#                        storage_buffer_queue_high_watermark_bytes: 31457280
+#                        storage_buffer_bytes_limit: 62914560
                   - name: envoy.filters.http.router
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router

@@ -5,7 +5,7 @@ import random
 import logging
 import logging.handlers
 import os
-
+import socket
 
 def get_env_var(name):
     return os.environ.get(name)
@@ -121,8 +121,18 @@ class EchoHandler(BaseHTTPRequestHandler):
     def do_HEAD(self):
         self.handle_request()
 
+class CustomHTTPServer(HTTPServer):
+    def server_bind(self):
+        # First, call the original server_bind to prepare the socket
+        super().server_bind()
 
-def run(server_class=HTTPServer, handler_class=EchoHandler, port=8080):
+        # Set the buffer sizes
+        sock = self.socket
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 2048)  # Set send buffer size
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_RCVBUF, 2048)
+        LOG.info(f"Server init done")
+
+def run(server_class=CustomHTTPServer, handler_class=EchoHandler, port=8080):
     server_address = ('', port)
     httpd = server_class(server_address, handler_class)
     LOG.info(f'Starting httpd server on port {port}...')
