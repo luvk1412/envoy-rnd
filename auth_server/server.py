@@ -47,6 +47,7 @@ class SimpleAuthHandler(BaseHTTPRequestHandler):
         self._handle_request()
 
     def _handle_request(self):
+        LOG.info(f"Method: {self.command} Headers received: {dict(self.headers)}")
         session_token = self.headers.get('X-Session-Token')
         LOG.info(f"Session header: {session_token}, path: {self.path}")
         response_body = {}

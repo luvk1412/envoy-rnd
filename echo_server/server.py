@@ -53,58 +53,64 @@ class EchoHandler(BaseHTTPRequestHandler):
 
     def handle_request(self):
         # Timestamp when headers are fully received
-        self.headers_received_time = time.time()
-        LOG.info(f"[{self.id}] Headers received: {dict(self.headers)}")
+        try:
+            self.headers_received_time = time.time()
+            LOG.info(f"[{self.id}] Headers received: {dict(self.headers)}")
 
-        # Read the body if any
-        content_length = self.headers.get('Content-Length')
-        data_size = self.headers.get('x-resp-mb')
-        delay_seconds = self.headers.get('x-resp-delay')
+            # Read the body if any
+            content_length = self.headers.get('Content-Length')
+            data_size = self.headers.get('x-resp-mb')
+            delay_seconds = self.headers.get('x-resp-delay')
 
 
-        if data_size:
-            data_size = float(data_size)
-        else:
-            data_size = 0
+            if data_size:
+                data_size = float(data_size)
+            else:
+                data_size = 0
 
-        post_data = None
-        if content_length:
-            content_length = int(content_length)
-            post_data = self.rfile.read(content_length).decode('utf-8')
-            body_received_time = time.time()
-            LOG.info(f"[{self.id}] Body received")
+            post_data = None
+            if content_length:
+                content_length = int(content_length)
+                post_data = self.rfile.read(content_length).decode('utf-8')
+                body_received_time = time.time()
+                LOG.info(f"[{self.id}] Body received")
 
-        # Prepare response data
-        response_data = {
-            'env': ENV,
-            'pod': {
-                'ns': POD_NS,
-                'name': POD_NAME,
-                'ip': POD_IP
-            },
-            'method': self.command,
-            'path': self.path,
-            'headers': dict(self.headers),
-            'body': post_data
-        }
+            # Prepare response data
+            response_data = {
+                'env': ENV,
+                'pod': {
+                    'ns': POD_NS,
+                    'name': POD_NAME,
+                    'ip': POD_IP
+                },
+                'method': self.command,
+                'path': self.path,
+                'headers': dict(self.headers),
+                'body': post_data
+            }
 
-        if 'status' not in self.path:
-            LOG.info(f'[{self.id}] Not a status req {data_size}')
-            response_data['large_str'] = "a" * int(data_size * 1024 * 1024)
+            if 'status' not in self.path:
+                LOG.info(f'[{self.id}] Not a status req {data_size}')
+                response_data['large_str'] = "a" * int(data_size * 1024 * 1024)
 
-        if delay_seconds:
-            LOG.info(f'[{self.id}] Delay seconds found {delay_seconds}')
-            time.sleep(float(delay_seconds))
+            if delay_seconds:
+                LOG.info(f'[{self.id}] Delay seconds found {float(delay_seconds)}')
+                time.sleep(float(delay_seconds))
+                LOG.info(f'[{self.id}] Delay Completedd {delay_seconds}')
 
-        # Send response
-        self.send_response(200)
-        self.send_header('Content-Type', 'application/json')
-        self.end_headers()
-        self.wfile.write(json.dumps(response_data, indent=2).encode('utf-8'))
 
-        # Timestamp when response is sent
-        self.response_sent_time = time.time()
-        LOG.info(f"[{self.id}] Response sent")
+    # Send response
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps(response_data, indent=2).encode('utf-8'))
+
+            # Timestamp when response is sent
+            self.response_sent_time = time.time()
+            LOG.info(f"[{self.id}] Response sent")
+        except Exception as e:
+            LOG.info(f'[{self.id}]Error happened: {e}')
+            raise e
 
     def do_GET(self):
         self.handle_request()
