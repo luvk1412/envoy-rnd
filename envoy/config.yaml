@@ -246,6 +246,9 @@ spec:
         name: auth
         port: 8080
       headersToBackend: [ "x-Session-resp" ]
+      # this is done because original uri is always appended to this path,
+      # hence we would want that to become a parameter
+      path: /fa/auth?path=
     headersToExtAuth: [ 'x-session-token' ]
 
 ---
