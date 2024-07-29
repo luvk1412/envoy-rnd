@@ -6,6 +6,11 @@ metadata:
   name: eg
 spec:
   controllerName: gateway.envoyproxy.io/gatewayclass-controller
+  parametersRef:
+    group: gateway.envoyproxy.io
+    kind: EnvoyProxy
+    name: custom-proxy-config
+    namespace: envoy-gateway-system
 ---
 # Defines a Gateway that uses the defined GatewayClass. This Gateway
 # listens on HTTP protocol at port 80.
@@ -19,6 +24,39 @@ spec:
     - name: http
       protocol: HTTP
       port: 80
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: EnvoyProxy
+metadata:
+  name: custom-proxy-config
+  namespace: envoy-gateway-system
+spec:
+  provider:
+    type: Kubernetes
+    kubernetes:
+      envoyService:
+        type: ClusterIP
+      envoyDeployment:
+        replicas: 1
+        patch:
+          type: StrategicMerge
+          value:
+            spec:
+              template:
+                spec:
+                  # sidecar auth container
+                  containers:
+                    - name: auth-local
+                      image: python-auth:latest
+                      imagePullPolicy: IfNotPresent
+                      ports:
+                        - containerPort: 8080
+                  # this edits /etc/hosts for all containers
+                  # and adds ip address mapping for the given hostname
+                  hostAliases:
+                    - ip: "127.0.0.1"
+                      hostnames:
+                        - "localhost.localdomain"
 ---
 #apiVersion: gateway.envoyproxy.io/v1alpha1
 #kind: ClientTrafficPolicy
@@ -243,7 +281,8 @@ spec:
   extAuth:
     http:
       backendRef:
-        name: auth
+        # currently points localhost headless service, can point to any service
+        name: localhost-headless
         port: 8080
       headersToBackend: [ "x-Session-resp" ]
       # this is done because original uri is always appended to this path,
@@ -278,7 +317,6 @@ spec:
     group: gateway.networking.k8s.io
     kind: Gateway
     name: eg
-    namespace: default
   type: JSONPatch
   jsonPatches:
     - type: "type.googleapis.com/envoy.config.listener.v3.Listener"
@@ -292,3 +330,35 @@ spec:
           typed_config:
             '@type': type.googleapis.com/envoy.extensions.filters.http.buffer.v3.Buffer
             maxRequestBytes: 52428800
+---
+# headless services
+apiVersion: v1
+kind: Service
+metadata:
+  name: localhost-headless
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+# endpoint for headless service which points to localhost.
+# Note that localhost.localdomain is not a valid localhost domain.
+# We need to add at as domain by either editing /etc/hosts in linux
+# or use aliasHosts as done above(which ultimately edits that file only)
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: localhost-headless-es
+  labels:
+    kubernetes.io/service-name: localhost-headless
+addressType: FQDN
+ports:
+  - name: http
+    port: 8080
+    protocol: TCP
+endpoints:
+  - addresses:
+      - "localhost.localdomain"
