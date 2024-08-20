@@ -38,25 +38,26 @@ spec:
         type: ClusterIP
       envoyDeployment:
         replicas: 1
-        patch:
-          type: StrategicMerge
-          value:
-            spec:
-              template:
-                spec:
-                  # sidecar auth container
-                  containers:
-                    - name: auth-local
-                      image: python-auth:latest
-                      imagePullPolicy: IfNotPresent
-                      ports:
-                        - containerPort: 8080
-                  # this edits /etc/hosts for all containers
-                  # and adds ip address mapping for the given hostname
-                  hostAliases:
-                    - ip: "127.0.0.1"
-                      hostnames:
-                        - "localhost.localdomain"
+# Below is enabled to run a sidecar along with envoy proxy
+#        patch:
+#          type: StrategicMerge
+#          value:
+#            spec:
+#              template:
+#                spec:
+#                  # sidecar auth container
+#                  containers:
+#                    - name: auth-local
+#                      image: python-auth:latest
+#                      imagePullPolicy: IfNotPresent
+#                      ports:
+#                        - containerPort: 8080
+#                  # this edits /etc/hosts for all containers
+#                  # and adds ip address mapping for the given hostname
+#                  hostAliases:
+#                    - ip: "127.0.0.1"
+#                      hostnames:
+#                        - "localhost.localdomain"
 ---
 #apiVersion: gateway.envoyproxy.io/v1alpha1
 #kind: ClientTrafficPolicy
@@ -70,6 +71,30 @@ spec:
 #  timeout:
 #    http:
 #      requestReceivedTimeout: 5s
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: BackendTrafficPolicy
+metadata:
+  name: btp
+spec:
+  targetRef:
+    group: gateway.networking.k8s.io
+    kind: HTTPRoute
+    name: backend-routes
+  retry: {}
+  healthCheck:
+    active:
+      interval: "4s"
+      type: HTTP
+      http:
+        path: /status
+        expectedStatuses:
+          - 200
+#    numRetries: 2
+#    perRetry:
+#      backOff:
+#        baseInterval: 100ms
+#        maxInterval: 10s
 ---
 # ServiceAccount for backend services, used for Kubernetes access control.
 apiVersion: v1
@@ -257,8 +282,8 @@ spec:
         - path:
             type: PathPrefix
             value: /service1/
-#      timeouts:
-#        request: "15s"
+    #      timeouts:
+    #        request: "15s"
     - backendRefs:
         - group: ""
           kind: Service
@@ -281,8 +306,9 @@ spec:
   extAuth:
     http:
       backendRef:
-        # currently points localhost headless service, can point to any service
-        name: localhost-headless
+        # point to a localhost headless service
+        #        name: localhost-headless
+        name: auth
         port: 8080
       headersToBackend: [ "x-Session-resp" ]
       # this is done because original uri is always appended to this path,
