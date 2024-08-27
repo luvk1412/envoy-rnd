@@ -82,14 +82,14 @@ spec:
     kind: HTTPRoute
     name: backend-routes
   retry: {}
-  healthCheck:
-    active:
-      interval: "4s"
-      type: HTTP
-      http:
-        path: /status
-        expectedStatuses:
-          - 200
+#  healthCheck:
+#    active:
+#      interval: "4s"
+#      type: HTTP
+#      http:
+#        path: /status
+#        expectedStatuses:
+#          - 200
 #    numRetries: 2
 #    perRetry:
 #      backOff:
