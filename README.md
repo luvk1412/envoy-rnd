@@ -161,7 +161,7 @@ command fails if you don't provide a static clusterIP
 - egctl command to see xDS translation
 
 ```bash
-egctl x translate --from gateway-api --to xds -f envoy/translation_testing/config_to_translate.yaml > envoy/translation_testing/config_translated.yaml
+egctl x translate --from gateway-api --to xds -f envoy/translation_testing/config_to_translate.yaml > envoy/translation_testing/config_translated.yaml --add-missing-resources
 
 ```
 
