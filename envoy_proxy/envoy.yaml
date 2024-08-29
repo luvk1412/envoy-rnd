@@ -31,13 +31,13 @@ static_resources:
 #                          thread_count: 2
 #                      request:
 #                        behavior:
-#                          bypass: {}
+#                          fully_buffer: {}
+#                        memory_buffer_bytes_limit: 20
+##                        storage_buffer_queue_high_watermark_bytes: 2048
+#                        storage_buffer_bytes_limit: 20
 #                      response:
 #                        behavior:
-#                          fully_buffer: {}
-#                        memory_buffer_bytes_limit: 30971520
-#                        storage_buffer_queue_high_watermark_bytes: 31457280
-#                        storage_buffer_bytes_limit: 62914560
+#                          bypass: {}
                   - name: envoy.filters.http.router
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router

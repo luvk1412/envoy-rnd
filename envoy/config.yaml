@@ -356,6 +356,18 @@ spec:
           typed_config:
             '@type': type.googleapis.com/envoy.extensions.filters.http.buffer.v3.Buffer
             maxRequestBytes: 52428800
+#          name: envoy.filters.http.filebuffer
+#          typed_config:
+#            '@type': type.googleapis.com/envoy.extensions.filters.http.file_system_buffer.v3.FileSystemBufferFilterConfig
+#            manager_config:
+#              thread_pool:
+#                thread_count: 2
+#            request:
+#              behavior:
+#                fully_buffer: { }
+#              memory_buffer_bytes_limit: 300000
+#              storage_buffer_queue_high_watermark_bytes: 52428800
+#              storage_buffer_bytes_limit: 52428800
 ---
 # headless services
 apiVersion: v1
