@@ -81,7 +81,7 @@ spec:
     group: gateway.networking.k8s.io
     kind: HTTPRoute
     name: backend-routes
-  retry: {}
+  retry: { }
 #  healthCheck:
 #    active:
 #      interval: "4s"
@@ -282,8 +282,8 @@ spec:
         - path:
             type: PathPrefix
             value: /service1/
-    #      timeouts:
-    #        request: "15s"
+      timeouts:
+        request: "18s"
     - backendRefs:
         - group: ""
           kind: Service
@@ -305,11 +305,11 @@ spec:
     name: backend-routes
   extAuth:
     http:
-      backendRef:
+      backendRefs:
         # point to a localhost headless service
         #        name: localhost-headless
-        name: auth
-        port: 8080
+        - name: auth
+          port: 8080
       headersToBackend: [ "x-Session-resp" ]
       # this is done because original uri is always appended to this path,
       # hence we would want that to become a parameter

@@ -36,7 +36,7 @@ helm install eg oci://docker.io/envoyproxy/gateway-helm --version v1.1.0 -n envo
 kubectl wait --timeout=5m -n envoy-gateway-system deployment/envoy-gateway --for=condition=Available
 ```
 
-- Setup example app and routes
+- Setup example app and routes. Follow [Docker Setup](#Docker-setup) to build images first for used containers, otherwise those pods might not start on applying below.
 
 ```bash
 kubectl apply -f envoy/config.yaml -n default
@@ -182,3 +182,9 @@ used to hit the mentioned target. This value does not denote an endpoint. For eg
 path value is `/fa/envoy/validate`, then final endpoint would become `/fa/envoy/validate/servic1/get` and filter will try to
 hit this endpoint which will result in 404. Hence, we use `/fa/auth?path=`, which results
 in `/fa/auth?path=/servic1/gets` making incoming req url as req parameter.
+
+## Egctl
+THis is a command line tool for managing envoy proxy. It is used above in envoy patch policy as well.
+```bash
+egctl c envoy-proxy all  # can be used  to get all configs of envoy like routes, clusters, endpoints, etc..
+```
