@@ -231,6 +231,7 @@ xds:
                       resourceApiVersion: V3
                     routeConfigName: default/eg/http
                   serverHeaderTransformation: PASS_THROUGH
+                  skipXffAppend: true
                   statPrefix: http-10080
                   useRemoteAddress: true
               name: default/eg/http

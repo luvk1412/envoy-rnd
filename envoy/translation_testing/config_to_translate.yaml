@@ -275,3 +275,10 @@ spec:
           typed_config:
             '@type': type.googleapis.com/envoy.extensions.filters.http.buffer.v3.Buffer
             maxRequestBytes: 52428800
+    - type: "type.googleapis.com/envoy.config.listener.v3.Listener"
+      # The listener name is of the form <GatewayNamespace>/<GatewayName>/<GatewayListenerName>
+      name: default/eg/http
+      operation:
+        op: add
+        path: "/default_filter_chain/filters/0/typed_config/skip_xff_append"
+        value: true
